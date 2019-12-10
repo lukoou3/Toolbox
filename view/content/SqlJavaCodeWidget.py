@@ -17,13 +17,17 @@ class SqlJavaCodeWidget(QWidget):
         self.tableNameLineEdit.setText("table_name")
         self.dataNameLineEdit = QLineEdit(minimumWidth=240)
         self.dataNameLineEdit.setText("data")
+        self.paramNameLineEdit = QLineEdit(minimumWidth=240)
+        self.paramNameLineEdit.setText("param")
         self.execButton = QPushButton("execute(执行)", maximumWidth=100)
         self.resultTextEdit = LineTextEdit()
 
         mainLayout = QVBoxLayout(self)
         mainLayout.addLayout(HBoxLayout(widgets=[QLabel("sql："), QLabel("java：")]))
         mainLayout.addLayout(HBoxLayout(widgets=[self.sqlInTextEdit,self.javaInTextEdit]), 2)
-        mainLayout.addLayout(HBoxLayout(widgets=[QLabel("tableName："), self.tableNameLineEdit, LayStretch(1), QLabel("dataName："), self.dataNameLineEdit, LayStretch(1)]))
+        mainLayout.addLayout(HBoxLayout(widgets=[QLabel("tableName："), self.tableNameLineEdit, LayStretch(1),
+                                                 QLabel("dataName："), self.dataNameLineEdit, LayStretch(1),
+                                                 QLabel("paramName："), self.paramNameLineEdit, LayStretch(1)]))
         mainLayout.addWidget(self.execButton)
         mainLayout.addWidget(self.resultTextEdit, 7)
 
@@ -44,6 +48,7 @@ class SqlJavaCodeWidget(QWidget):
         javaInText = self.javaInTextEdit.toPlainText().strip()
         tableName = self.tableNameLineEdit.text()
         dataName = self.dataNameLineEdit.text()
+        paramName = self.paramNameLineEdit.text()
         fields = javaSqlParse.getJavaSqlField(javaInText, sqlInText)
         if not fields:
             return
@@ -61,6 +66,8 @@ class SqlJavaCodeWidget(QWidget):
         results.append(deleteSql)
         jdbcGetMethodsByFields = "\n".join(javaSqlParse.getJdbcGetMethodsByFields(fields,dataName))
         results.append(jdbcGetMethodsByFields)
+        javaGetSetMethodsByFields = "\n".join(javaSqlParse.getJavaGetSetMethodsByFields(fields, dataName, paramName))
+        results.append(javaGetSetMethodsByFields)
 
         self.resultTextEdit.clear()
         first = True

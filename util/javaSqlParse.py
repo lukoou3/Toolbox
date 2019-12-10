@@ -127,6 +127,10 @@ def getDeleteSql(tablename=tablename, dataname="data"):
 def getJdbcGetMethodsByFields(fields, dataname="data", rstname="rst"):
     return (getJdbcGetMethodByField(field, dataname, rstname) for field in fields)
 
+def getJavaGetSetMethodsByFields(fields, dataname="data", dataname2="param"):
+    formatstr = """{}.{}({}.{}());"""
+    return (formatstr.format(dataname,getJavaSetMethodByField(field)[:-2],dataname2,getJavaGetMethodByField(field)[:-2])
+            for field in fields)
 
 def getSqlAddColumByFields(fields, tablename=tablename):
     return ("alter table {} add {} tinyint(2) unsigned NOT NULL DEFAULT '1' after {};".format(
