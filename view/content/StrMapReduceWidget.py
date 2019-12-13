@@ -8,16 +8,16 @@ from view.base.LineTextEdit import LineTextEdit
 from view.base.ScrollArea import ScrollArea
 
 sepList = [{"text": "换行符", "sep": "\n"},
-            {"text": "逗号", "sep": ","},
-            {"text": ";号", "sep": ";"},
-              ]
+           {"text": "逗号", "sep": ","},
+           {"text": ";号", "sep": ";"},
+           ]
 
-extractList = [{"text": "两个反引号之间的字符", "extract_re": None, "extract": lambda line: line[line.index("`",0)+1:line.index("`",line.index("`",0)+1)]},
-              {"text": "以=分割成两个字符", "extract_re": None, "extract": lambda line: line.split("=")},
-              {"text": "以.分割成两个字符", "extract_re": None, "extract": lambda line: line.split(".")},
-              {"text": "以:分割成两个字符", "extract_re": None, "extract": lambda line: line.split(":")},
-              {"text": "原字符", "extract_re": None, "extract":lambda line:line}
-              ]
+extractList = [{"text": "两个反引号之间的字符", "extract_re": None, "extract": lambda line: line[line.index("`", 0) + 1:line.index("`", line.index("`", 0) + 1)]},
+               {"text": "以=分割成两个字符", "extract_re": None, "extract": lambda line: line.split("=")},
+               {"text": "以.分割成两个字符", "extract_re": None, "extract": lambda line: line.split(".")},
+               {"text": "以:分割成两个字符", "extract_re": None, "extract": lambda line: line.split(":")},
+               {"text": "原字符", "extract_re": None, "extract": lambda line: line}
+               ]
 
 formatList = [{"text": "原字符", "format_text": "{0}"},
               {"text": "java case 语句：int -> string", "format_text": """case {0}:
@@ -27,8 +27,9 @@ formatList = [{"text": "原字符", "format_text": "{0}"},
               ]
 
 joinList = [{"text": "换行符", "sep": "\n"},
-              {"text": "逗号：, ", "sep": ","}
-              ]
+            {"text": "逗号：, ", "sep": ","}
+            ]
+
 
 class StrMapReduceWidget(ScrollArea):
     def __init__(self, parent=None):
@@ -42,15 +43,19 @@ class StrMapReduceWidget(ScrollArea):
 
         mainLayout.addWidget(self.inputText, 20)
 
-        self.sepCombobox = ComboBox(self ,datas= sepList)#maximumWidth=300, minimumWidth=200
+        self.sepCombobox = ComboBox(self, datas=sepList)  # maximumWidth=300, minimumWidth=200
         self.sepCombobox.setView(QListView())
-        #self.sepCombobox.setEditable(True)
-        #self.sepCombobox.setMaxVisibleItems(6)
+        # self.sepCombobox.setEditable(True)
+        # self.sepCombobox.setMaxVisibleItems(6)
         self.udSepCheckBox = QCheckBox('自定义separator：')
         self.udSepInput = QLineEdit(self, minimumWidth=240)
         self.sepCombobox.currentIndexChanged.connect(lambda x: print(x))
 
-        self.extractCombobox = ComboBox(self ,datas=extractList)
+        self.trimLineCheckBox = QCheckBox('strip/trim Line', checked=True)
+        self.delBlankLineCheckBox = QCheckBox('删除空行')
+        self.fmtBlankLineCheckBox = QCheckBox('format空行')
+
+        self.extractCombobox = ComboBox(self, datas=extractList)
         self.extractCombobox.setView(QListView())
         self.udExCheckBox = QCheckBox('自定义extract：')
         self.udExInput = QLineEdit(self, minimumWidth=240)
@@ -67,18 +72,19 @@ class StrMapReduceWidget(ScrollArea):
 
         self.execButton = QPushButton("execute(执行)", maximumWidth=100)
 
-
         gridLayout = GridLayout()
-        glWidgets  = [
-            [ GLItem(QLabel("separator："), 1, 1), GLItem(self.sepCombobox, 1, 3) , GLItem(self.udSepCheckBox, 1, 1),
-              GLItem(self.udSepInput, 1, 3), GLItem(QWidget(), 1, 1) ],
-            [ GLItem(QLabel("extract："), 1, 1), GLItem(self.extractCombobox, 1, 3), GLItem(self.udExCheckBox, 1, 1),
-              GLItem(self.udExInput, 1, 3), GLItem(QWidget(), 1, 1)],
-            [ GLItem(QLabel("format："), 1, 1), GLItem(self.formatCombobox, 1, 3), GLItem(self.udFmtCheckBox, 1, 1),
-              GLItem(self.udFmtInput, 1, -1)],
-            [ GLItem(QLabel("join："), 1, 1), GLItem(self.joinCombobox, 1, 3), GLItem(self.udJoinCheckBox, 1, 1),
-              GLItem(self.udJoinInput, 1, 3), GLItem(QWidget(), 1, 1)],
-            [GLItem(self.execButton, 1, 2),  GLItem(QWidget(), 1, -1)],
+        glWidgets = [
+            [GLItem(QLabel("separator："), 1, 1), GLItem(self.sepCombobox, 1, 3), GLItem(self.udSepCheckBox, 1, 1),
+             GLItem(self.udSepInput, 1, 3), GLItem(QWidget(), 1, 1)],
+            [GLItem(QLabel("extract："), 1, 1), GLItem(self.extractCombobox, 1, 3), GLItem(self.udExCheckBox, 1, 1),
+             GLItem(self.udExInput, 1, 3), GLItem(QWidget(), 1, 1)],
+            [GLItem(QLabel("format："), 1, 1), GLItem(self.formatCombobox, 1, 3), GLItem(self.udFmtCheckBox, 1, 1),
+             GLItem(self.udFmtInput, 1, -1)],
+            [GLItem(QLabel("join："), 1, 1), GLItem(self.joinCombobox, 1, 3), GLItem(self.udJoinCheckBox, 1, 1),
+             GLItem(self.udJoinInput, 1, 3), GLItem(QWidget(), 1, 1)],
+            [GLItem(self.trimLineCheckBox, 1, 1), GLItem(self.delBlankLineCheckBox, 1, 1),
+             GLItem(self.fmtBlankLineCheckBox, 1, 1), GLItem(QWidget(), 1, -1)],
+            [GLItem(self.execButton, 1, 2), GLItem(QWidget(), 1, -1)],
         ]
         gridLayout.addWidgets(glWidgets)
         mainLayout.addLayout(gridLayout)
@@ -103,9 +109,10 @@ class StrMapReduceWidget(ScrollArea):
         if self.udSepCheckBox.isChecked():
             sepData = {"text": "", "sep": self.udSepInput.text()}
         if self.udExCheckBox.isChecked():
-            extractData = {"text": "", "extract_re": self.udExInput.text().strip(), "extract":None}
+            extractData = {"text": "", "extract_re": self.udExInput.text().strip(), "extract": None}
         if self.udFmtCheckBox.isChecked():
-            formatData = {"text": "", "format_text": self.udFmtInput.text().strip()}
+            formatData = {"text": "", "format_text": self.udFmtInput.text().strip().replace(r"\s",
+                                                                                            " ").replace(r"\n", "\n")}
         if self.udJoinCheckBox.isChecked():
             joinData = {"text": "", "sep": self.udJoinInput.text()}
 
@@ -130,9 +137,27 @@ class StrMapReduceWidget(ScrollArea):
                 extract_strs = (extract_strs, )
             return extract_strs
 
-        lines = [line.strip() for line in text.split(sepData.get("sep")) if line.strip()]
-        lines = [getExtractStrs(extractData, line) for line in lines]
-        lines = [formatData.get("format_text").format(*extract_strs) for extract_strs in lines]
+        def fmtLine(line):
+            if line.strip() is "":
+                return line if not fmtBlankLine else formatData.get("format_text").format(line)
+            else:
+                extract_strs = getExtractStrs(extractData, line)
+                return formatData.get("format_text").format(*extract_strs)
+
+        trimLine = self.trimLineCheckBox.isChecked()
+        delBlankLine = self.delBlankLineCheckBox.isChecked()
+        fmtBlankLine = self.fmtBlankLineCheckBox.isChecked()
+
+        lines = [line.strip() if trimLine else line
+                 for line in text.split(sepData.get("sep"))
+                 if not delBlankLine or line.strip()]
+        """
+        lines = [(line, ) if line == "" else getExtractStrs(extractData, line)
+                 for line in lines]
+        lines = [formatData.get("format_text").format(*extract_strs) if extract_strs != ("", ) or fmtBlankLine else extract_strs[0]
+                 for extract_strs in lines]
+        """
+        lines = [fmtLine(line) for line in lines]
         return joinData.get("sep").join(lines)
 
     def setQssStyle(self):
@@ -220,4 +245,3 @@ class StrMapReduceWidget(ScrollArea):
             }
             """
         )
-
