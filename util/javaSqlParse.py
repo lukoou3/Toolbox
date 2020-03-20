@@ -3,8 +3,11 @@ import re
 import Levenshtein
 
 tablename = "tablename"
+
+
 class JavaParse():
     pass
+
 
 def getJavaSqlField(javaCode, sqlCode):
     from util import sqlParse
@@ -31,16 +34,19 @@ def getJavaSqlField(javaCode, sqlCode):
         fields.append((javaField[0], javaField[1], sqlFieldName))
     return fields
 
+
 def getJavaField(codeStr):
     """获得class的属性"""
     lines = codeStr.split("\n")
     fields = list()
-    re_field = re.compile(r"(int|Integer|short|long|Long|double|Double|boolean|Boolean|String|Date)\s+(\w+)\s{0,2}(=|;)")
+    re_field = re.compile(
+        r"(int|Integer|short|long|Long|double|Double|boolean|Boolean|String|Date)\s+(\w+)\s{0,2}(=|;)")
     for line in lines:
         mactch = re.search(re_field, line)
         if mactch:
             fields.append((mactch.group(1), mactch.group(2)))
     return fields
+
 
 def getJavaGetMethodByField(field):
     """获得class的get方法"""
@@ -51,11 +57,13 @@ def getJavaGetMethodByField(field):
         getMethod = "get" + fieldName[0].upper() + fieldName[1:] + "()"
     return getMethod
 
+
 def getJavaSetMethodByField(field):
     """获得class的set方法"""
     fieldType, fieldName, sqlField = field
     getMethod = "set" + fieldName[0].upper() + fieldName[1:] + "()"
     return getMethod
+
 
 def getJavaSqlGetMethodByField(field, dataname="data"):
     fieldType, fieldName, sqlField = field
@@ -91,12 +99,12 @@ def getSelectSql(fields, tablename=tablename):
     return temp.format(**{"fields": ",".join(sqlField for fieldType, fieldName, sqlField in fields), "tablename": tablename})
 
 
-def getInsertSql(fields,tablename=tablename, dataname="data", filterNames=None):
+def getInsertSql(fields, tablename=tablename, dataname="data", filterNames=None):
     filterNames = filterNames if filterNames else ["id"]
     fields = [field for field in fields if field[2] not in filterNames]
     temp = "insert into {tablename}({fields}) values ({fieldValues})"
     fieldValues = (getJavaSqlGetMethodByField(field, dataname) for field in fields)
-    tempdict = {"tablename": tablename, "fields": ",".join(sqlField for fieldType,fieldName,sqlField in fields),
+    tempdict = {"tablename": tablename, "fields": ",".join(sqlField for fieldType, fieldName, sqlField in fields),
                 "fieldValues": ",".join(fieldValues)}
     return temp.format(**tempdict)
 
@@ -115,7 +123,7 @@ def getUpdateSqlXml(fields, tablename=tablename, dataname="addParam", filterName
     fields = [field for field in fields if field[1] not in filterNames]
     fieldValues = (field[2] + " = " + getJavXmlGetMethodByField(field, dataname) for field in fields)
     temp = "update {tablename}\nset {fieldValues}\nwhere id ={whereValue}"
-    tempdict = {"tablename": tablename, "fieldValues": ",\n".join(fieldValues), "whereValue": "$"+dataname+".id"}
+    tempdict = {"tablename": tablename, "fieldValues": ",\n".join(fieldValues), "whereValue": "$" + dataname + ".id"}
     return temp.format(**tempdict)
 
 
@@ -124,24 +132,68 @@ def getDeleteSql(tablename=tablename, dataname="data"):
     return temp.format(**{"tablename": tablename, "whereValue": dataname + ".getId()"})
 
 
+def getMybatisSelectListSql(fields, tablename=tablename):
+    temp = "select {fields} from {tablename}"
+    return temp.format(**{"fields": ",".join(sqlField for fieldType, fieldName, sqlField in fields), "tablename": tablename})
+
+
+def getMybatisSelectOneSql(fields, tablename=tablename):
+    temp = "select {fields} from {tablename} where id = #{{id}}"
+    return temp.format(**{"fields": ",".join(sqlField for fieldType, fieldName, sqlField in fields), "tablename": tablename})
+
+
+def getMybatisSelectListSql2(tablename=tablename):
+    return "select * from {}".format(tablename)
+
+
+def getMybatisSelectOneSql2(tablename=tablename):
+    return "select * from {} where id = #{{id}}".format(tablename)
+
+
+def getMybatisInsertSql(fields, tablename=tablename, filterNames=None):
+    filterNames = filterNames if filterNames else ["id"]
+    fields = [field for field in fields if field[2] not in filterNames]
+    temp = "insert into {tablename}({fields}) values ({fieldValues})"
+    fieldValues = ("#{{{}}}".format(field[1]) for field in fields)
+    tempdict = {"tablename": tablename, "fields": ",".join(sqlField for fieldType, fieldName, sqlField in fields),
+                "fieldValues": ",".join(fieldValues)}
+    return temp.format(**tempdict)
+
+
+def getMybatisUpdateSql(fields, tablename=tablename, filterNames=None):
+    filterNames = filterNames if filterNames else ["id"]
+    fields = [field for field in fields if field[1] not in filterNames]
+    fieldValues = ("{0}=#{{{1}}}".format(field[2], field[1]) for field in fields)
+    temp = "update {tablename} set {fieldValues} where id = #{{id}}"
+    tempdict = {"tablename": tablename, "fieldValues": ",".join(fieldValues)}
+    return temp.format(**tempdict)
+
+
+def getMybatisDeleteSql(tablename=tablename):
+    return "delete from {} where id = #{{id}}".format(tablename)
+
+
 def getJdbcGetMethodsByFields(fields, dataname="data", rstname="rst"):
     return (getJdbcGetMethodByField(field, dataname, rstname) for field in fields)
 
+
 def getJavaGetSetMethodsByFields(fields, dataname="data", dataname2="param"):
     formatstr = """{}.{}({}.{}());"""
-    return (formatstr.format(dataname,getJavaSetMethodByField(field)[:-2],dataname2,getJavaGetMethodByField(field)[:-2])
+    return (formatstr.format(dataname, getJavaSetMethodByField(field)[:-2], dataname2, getJavaGetMethodByField(field)[:-2])
             for field in fields)
+
 
 def getSqlAddColumByFields(fields, tablename=tablename):
     return ("alter table {} add {} tinyint(2) unsigned NOT NULL DEFAULT '1' after {};".format(
         tablename, field[1], (fields[i - 1][1] if i > 0 else "aaa")
     ) for i, field in enumerate(fields))
 
+
 def test():
     with open("DacHikDtServerConfParam.java", "r", encoding="gbk") as fp:
         fields = getJavaSqlField(fp.read())
         print(getSelectSql(fields, "dac_dynamicperceive_config"))
-        print("#"*30)
+        print("#" * 30)
         print(getInsertSql(fields, "dac_dynamicperceive_config"))
         print("#" * 30)
         print(getUpdateSql(fields, "dac_dynamicperceive_config"))
@@ -153,6 +205,7 @@ def test():
         print(getDeleteSql("dac_dynamicperceive_config"))
         print("#" * 30)
         print("\n".join(getJdbcGetMethodsByFields(fields, "data")))
+
 
 def getJavaClassField(javaText):
     re_class = re.compile(r"class[\w\d\s]+\{(.+)\}", re.DOTALL)
@@ -167,6 +220,7 @@ def getJavaClassField(javaText):
             continue
         if line.startswith("@"):
             continue
+
 
 if __name__ == '__main__':
 

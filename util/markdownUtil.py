@@ -1,6 +1,7 @@
 import requests
 from lxml import etree
 
+
 def html_tables_to_markdown(url_or_html):
     """
     url or html，转换页面上所有table到markdown table
@@ -18,29 +19,30 @@ def html_tables_to_markdown(url_or_html):
     for table in tables:
         trs = table.xpath(".//tr")
         for tr in trs:
-            trstr = " | ".join([ "".join([text.strip() for text in td.xpath(".//text()")]).replace("|","&#124;")
-                for td in tr.xpath("./td | ./th")]).replace("â¦","...")
-            texts.append("| "+trstr+" |")
-        texts.append("#"*20)
+            trstr = " | ".join(["".join([text.strip() for text in td.xpath(".//text()")]).replace("|", "&#124;")
+                                for td in tr.xpath("./td | ./th")]).replace("â¦", "...")
+            texts.append("| " + trstr + " |")
+        texts.append("#" * 20)
 
     return "\n".join(texts)
 
+
 def text_to_markdown_ul(text):
     """把文本转换成markdown形式的无序列表"""
-    texts = [ "* " + line.strip()  for line in text.split("\n") if line.strip() != "" ]
+    texts = ["* " + line.strip() for line in text.split("\n") if line.strip() != ""]
     text = "    \n".join(texts)
     return text
 
 
-def text_addnum(text,addEmptyLine=False):
+def text_addnum(text, addEmptyLine=False):
     """
     在文本前面加上序号
     :param text:
     :param addEmptyLine:
     :return:
     """
-    texts = [ "{}、{}".format(str(i),line) + line.strip()
-              for i,line in enumerate( filter(lambda x: x.strip() != "",text.split("\n")) , start=1 ) ]
+    texts = ["{}、{}".format(str(i), line) + line.strip()
+             for i, line in enumerate(filter(lambda x: x.strip() != "", text.split("\n")), start=1)]
     text = "    \n".join(texts) if not addEmptyLine else "    \n\n".join(texts)
     return text
 
@@ -48,5 +50,13 @@ def text_addnum(text,addEmptyLine=False):
 def html_ul_to_markdown(text):
     """把html ul 转换成markdown形式的无序列表"""
     html = etree.HTML(text)
-    text = "    \n".join(["* " + text.strip() for text in html.xpath("//li//text()")] )
+    text = "    \n".join(["* " + text.strip() for text in html.xpath("//li//text()")])
+    return text
+
+
+def html_ulhtml_to_markdown(text):
+    """把html ul 转换成markdown形式的无序列表，li中的html标签保留"""
+    html = etree.HTML(text)
+    text = "    \n".join(["* " + etree.tostring(li, encoding="utf-8", pretty_print=False, method="html").decode().strip()[len(li.tag) + 2:-len(li.tag) - 3]
+                          for li in html.xpath("//li")])
     return text

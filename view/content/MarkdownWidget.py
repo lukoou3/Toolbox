@@ -7,10 +7,12 @@ from view.base.ScrollArea import ScrollArea
 
 
 markdownHandlers = [{"text": "url or html，转换页面上所有table到markdown table", "handler": markdownUtil.html_tables_to_markdown},
-                    {"text": "html ul 转换成markdown形式的无序列表","handler": markdownUtil.html_ul_to_markdown},
-                    {"text": "纯文本 转换成markdown形式的无序列表","handler": markdownUtil.text_to_markdown_ul},
-                    {"text": "文本前面添加序号","handler": markdownUtil.text_addnum},
+                    {"text": "html ul 转换成markdown形式的无序列表", "handler": markdownUtil.html_ul_to_markdown},
+                    {"text": "html ul内html转换成markdown形式的无序列表", "handler": markdownUtil.html_ulhtml_to_markdown},
+                    {"text": "纯文本 转换成markdown形式的无序列表", "handler": markdownUtil.text_to_markdown_ul},
+                    {"text": "文本前面添加序号", "handler": markdownUtil.text_addnum},
                     ]
+
 
 class MarkdownWidget(ScrollArea):
     def __init__(self, parent=None):
